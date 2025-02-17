@@ -17,9 +17,10 @@ interface ParticipantsModalProps {
   onClose: () => void
   participants: Participant[]
   setParticipants: (participants: Participant[]) => void
+  onSaveAndContinue: () => void
 }
 
-export function ParticipantsModal({ open, onClose, participants, setParticipants }: ParticipantsModalProps) {
+export function ParticipantsModal({ open, onClose, participants, setParticipants, onSaveAndContinue }: ParticipantsModalProps) {
   const updateCount = (type: Participant["type"], increment: boolean) => {
     setParticipants(
       participants.map((p) =>
@@ -29,6 +30,7 @@ export function ParticipantsModal({ open, onClose, participants, setParticipants
   }
 
   const totalPrice = participants.reduce((sum, p) => sum + p.price * p.count, 0)
+  const totalParticipants = participants.reduce((sum, p) => sum + p.count, 0)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -59,8 +61,12 @@ export function ParticipantsModal({ open, onClose, participants, setParticipants
             <span>Total</span>
             <span>€{totalPrice.toFixed(2)}</span>
           </div>
-          <Button className="w-full" onClick={onClose}>
-            Confirm
+          <Button 
+            className="w-full" 
+            onClick={onSaveAndContinue}
+            disabled={totalParticipants === 0}
+          >
+            Save and Continue
           </Button>
         </div>
       </DialogContent>

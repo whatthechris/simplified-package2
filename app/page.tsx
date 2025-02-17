@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Calendar, Check, HelpCircle, Info, Users } from "lucide-react"
+import { Calendar, Check, HelpCircle, Info, Users, Minus, Plus } from "lucide-react"
 import React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -93,10 +93,12 @@ export default function BookingPage() {
     { type: "Youth", ageRange: "6-17", price: 43.0, count: 0, requiresAdult: true },
     { type: "Infant", ageRange: "0-5", price: 0, count: 0, requiresAdult: true },
   ])
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showParticipantsModal, setShowParticipantsModal] = useState(false)
-  const [showDateModal, setShowDateModal] = useState(false)
   const [attractionSelections, setAttractionSelections] = useState<{ [key: string]: AttractionSelection }>({})
+  const [showAttractions, setShowAttractions] = useState(false)
+  const [showDateModal, setShowDateModal] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [datePickerAttraction, setDatePickerAttraction] = useState<string | null>(null)
 
   const totalParticipants = participants.reduce((sum, p) => sum + p.count, 0)
   const calculateTotalPrice = () => {
@@ -166,6 +168,28 @@ export default function BookingPage() {
   // Add ref for the attractions section
   const attractionsRef = React.useRef<HTMLDivElement>(null)
 
+  const handleParticipantsSave = () => {
+    setShowParticipantsModal(false)
+    setShowAttractions(true)
+    // Scroll to attractions section after a short delay
+    setTimeout(() => {
+      attractionsRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, 100)
+  }
+
+  const handleDateSelect = (date: Date | null) => {
+    if (date && datePickerAttraction) {
+      // Only update the date for the attraction that opened the picker
+      handleAttractionDateSelect(datePickerAttraction, date)
+    }
+    setShowDateModal(false)
+    setDatePickerAttraction(null)
+    // Update the base date for all date ranges
+    if (date) {
+      setSelectedDate(date)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="border-b bg-white">
@@ -181,82 +205,90 @@ export default function BookingPage() {
             </div>
           </div>
         </div>
+        <hr/>
+        <div className="flex justify-center">
+          <Image src="/steps.png" alt="" width={1440} height={74} />
+        </div>
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8">
-          <Progress value={25} className="h-2" />
-          <div className="mt-4 flex justify-between text-sm">
-            <div className="flex flex-col items-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                1
-              </div>
-              <span className="mt-2">Booking details</span>
-            </div>
-            <div className="flex flex-col items-center text-muted-foreground">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border">2</div>
-              <span className="mt-2">Upgrades</span>
-            </div>
-            <div className="flex flex-col items-center text-muted-foreground">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border">3</div>
-              <span className="mt-2">Your details</span>
-            </div>
-            <div className="flex flex-col items-center text-muted-foreground">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border">4</div>
-              <span className="mt-2">Payment</span>
-            </div>
-          </div>
-        </div>
-
         <div className="grid gap-10 lg:grid-cols-2 p-10 bg-white rounded-2xl">
-          <div className="flex flex-col justify-center">
-            <h1 className="text-3xl font-bold">Rome Tourist Card</h1>
+          <div className="max-w-md flex flex-col justify-center">
+            <h1 className="text-3xl font-bold">Rome Tour Card</h1>
             <p className="mt-2 text-gray-600">
               Build your perfect Rome adventure with a custom package! Cover all the essentials Rome has to offer by
               creating your own unique combination of top attractions and experiences.
             </p>
 
-            <div className="mt-6 flex items-center gap-2">
-              <h2 className="font-semibold">Ticket information</h2>
-              <Info className="h-4 w-4 text-muted-foreground" />
+            <div className="mt-2">
+              <Button variant="link" className="w-fit h-auto p-0 text-[#1CD4D4]">
+                Show more info
+                <Info className="ml-1 h-4 w-4" />
+              </Button>
             </div>
 
-            <div className="flex gap-6 flex-row mt-20">
-              <div>
-                <label className="text-sm font-bold">Select your participants</label>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between mt-2"
-                  onClick={() => setShowParticipantsModal(true)}
-                >
-                  <div className="flex items-center">
-                    <Users className="mr-2 h-4 w-4" />
-                    {participantSummary}
+              <div className="space-y-4 mt-6">
+                <h3 className="font-semibold">Select your participants</h3>
+                {participants.map((participant) => (
+                  <div key={participant.type} className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                    <div>
+                      <div className="font-medium">{participant.type}</div>
+                      <div className="text-sm text-gray-500">Age: {participant.ageRange}</div>
+                      {participant.requiresAdult && (
+                        <div className="text-sm text-gray-500">• Only in combination with: Adult</div>
+                      )}
+                      <div className="font-medium mt-1">€{participant.price.toFixed(2)}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          setParticipants(participants.map(p =>
+                            p.type === participant.type 
+                              ? { ...p, count: Math.max(0, p.count - 1) }
+                              : p
+                          ))
+                          setAttractionSelections({})
+                        }}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{participant.count}</span>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          setParticipants(participants.map(p =>
+                            p.type === participant.type 
+                              ? { ...p, count: p.count + 1 }
+                              : p
+                          ))
+                          setAttractionSelections({})
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <span className="text-muted-foreground">
-                    {totalParticipants > 0 ? `€${totalPrice.toFixed(2)}` : ""}
-                  </span>
-                </Button>
+                ))}
               </div>
 
-              <div>
-                <label className="text-sm font-bold">Select your start date</label>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-between mt-2 ${totalParticipants === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => totalParticipants > 0 && setShowDateModal(true)}
-                  disabled={totalParticipants === 0}
-                >
-                  <div className="flex items-center">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {selectedDate ? selectedDate.toLocaleDateString() : "Select a date"}
-                  </div>
-                </Button>
-              </div>
-            </div>
+              <Button 
+                className="w-full mt-6"
+                onClick={() => {
+                  setShowAttractions(true)
+                  setTimeout(() => {
+                    attractionsRef.current?.scrollIntoView({ behavior: "smooth" })
+                  }, 100)
+                }}
+                disabled={totalParticipants === 0}
+              >
+                Check availability
+              </Button>
           </div>
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+          <div className="relative aspect-square overflow-hidden rounded-lg">
             <Image
               src="/rtc_image.png"
               alt="Rome Colosseum with Tourist Card"
@@ -267,10 +299,10 @@ export default function BookingPage() {
           </div>
         </div>
 
-        {selectedDate && (
-          <div ref={attractionsRef} className="mt-8 grid gap-6 md:grid-cols-[2fr,1fr]">
+        {showAttractions && (
+          <div ref={attractionsRef} className="mt-8 grid gap-6 lg:gap-12 md:grid-cols-[2fr,1fr]">
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Reserve your tickets</h2>
+              <h2 className="text-xl font-semibold">Reserve your tickets</h2>
               <div className="space-y-4">
                 {attractions.map((attraction) => (
                   <AttractionSection
@@ -285,6 +317,10 @@ export default function BookingPage() {
                     selectedTicketOption={attractionSelections[attraction.title]?.ticketOption || null}
                     onTicketSelect={(optionId) => handleTicketSelect(attraction.title, optionId)}
                     isDateSelected={!!attractionSelections[attraction.title]?.date}
+                    onMoreDatesClick={() => {
+                      setDatePickerAttraction(attraction.title)
+                      setShowDateModal(true)
+                    }}
                   />
                 ))}
               </div>
@@ -336,28 +372,21 @@ export default function BookingPage() {
         onClose={() => {
           setShowParticipantsModal(false)
           setAttractionSelections({}) // Clear selections when participants change
+          setShowAttractions(false) // Hide attractions when closing modal
         }}
         participants={participants}
         setParticipants={(newParticipants) => {
           setParticipants(newParticipants)
           setAttractionSelections({}) // Clear selections when participants change
         }}
+        onSaveAndContinue={handleParticipantsSave}
       />
 
       <DatePickerModal
-        open={showDateModal && hasParticipants}
+        open={showDateModal}
         onClose={() => setShowDateModal(false)}
-        selectedDate={selectedDate}
-        onSelect={(date) => {
-          setSelectedDate(date)
-          setAttractionSelections({})
-          // Scroll to attractions section after a short delay to ensure rendering
-          if (date) {
-            setTimeout(() => {
-              attractionsRef.current?.scrollIntoView({ behavior: "smooth" })
-            }, 100)
-          }
-        }}
+        selectedDate={new Date()}
+        onSelect={handleDateSelect}
       />
     </div>
   )

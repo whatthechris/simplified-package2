@@ -24,6 +24,7 @@ interface AttractionSectionProps {
     available?: boolean
   }>
   isDateSelected: boolean
+  onMoreDatesClick: () => void
 }
 
 const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"]
@@ -39,6 +40,7 @@ export default function AttractionSection({
   onTicketSelect,
   ticketOptions,
   isDateSelected,
+  onMoreDatesClick,
 }: AttractionSectionProps) {
   // Use the attraction's selected date if it exists, otherwise use the start date
   const currentAttractionDate = attractionDate || selectedDate;
@@ -54,8 +56,8 @@ export default function AttractionSection({
   }
 
   return (
-    <Card className="bg-white">
-      <CardHeader className="flex-row items-start justify-between gap-4">
+    <Card className="bg-white rounded-2xl overflow-hidden">
+      <CardHeader className="flex-row items-start justify-between gap-4 bg-slate-100 px-12 py-8">
         <div className="space-y-3">
           <CardTitle className="text-2xl">{title}</CardTitle>
           <div className="space-y-2">
@@ -73,13 +75,13 @@ export default function AttractionSection({
           <img src={image || "/placeholder.svg"} alt={title} className="object-cover" />
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-12 py-8">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Select a visit date</h3>
             <p className="text-sm text-slate-600">{format(selectedDate, "MMM yyyy").toUpperCase()}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 max-w-[500px]">
             {dateRange.map((date, i) => {
               const isSelected = attractionDate ? isSameDay(date, attractionDate) : false;
               return (
@@ -107,7 +109,11 @@ export default function AttractionSection({
                 </Button>
               )
             })}
-            <Button variant="outline" className="flex-1 flex-col gap-1 p-2 h-[70px]">
+            <Button 
+              variant="outline" 
+              className="flex-1 flex-col gap-1 p-2 h-[70px]" 
+              onClick={onMoreDatesClick}
+            >
               <Calendar className="h-4 w-4 text-[#1CD4D4]" />
               <span className="text-xs text-[#1CD4D4]">More dates</span>
             </Button>
@@ -125,7 +131,7 @@ export default function AttractionSection({
 
         {/* Only show time selection after a ticket is selected */}
         {selectedTicketOption && (
-          <div className="pt-4">
+          <div className="pt-4 max-w-[330px]">
             <h3 className="text-lg font-semibold">Select a timeslot</h3>
             <Select
               onValueChange={(time) => {
