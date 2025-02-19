@@ -1,5 +1,5 @@
 import { Calendar, Clock } from "lucide-react"
-import { format, addDays } from "date-fns"
+import { format, addDays, isToday } from "date-fns"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -98,7 +98,7 @@ export default function AttractionSection({
                     "text-xs",
                     isSelected ? "text-white" : "text-slate-600"
                   )}>
-                    {i === 0 ? "TODAY" : format(date, "EEE").toUpperCase()}
+                    {isToday(date) ? "TODAY" : format(date, "EEE").toUpperCase()}
                   </span>
                   <span className={cn(
                     "text-lg font-semibold",

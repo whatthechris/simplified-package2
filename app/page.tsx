@@ -288,15 +288,30 @@ export default function BookingPage() {
               </Button>
           </div>
 
-          <div className="relative aspect-square overflow-hidden rounded-lg">
+          <div className="flex flex-col gap-2">
+          <div className="relative aspect-video overflow-hidden rounded-lg">
             <Image
               src="/rtc_image.png"
               alt="Rome Colosseum with Tourist Card"
-              className="object-fill object-center"
+              className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 object-fill object-center"
               width={1000}
-              height={1000}
+              height={600}
             />
           </div>
+          <div className="flex flex-wrap justify-center gap-2">
+              {attractions.map((attraction) => (
+                <div key={attraction.title} className="w-[32%]">
+                  <Image
+                    src={attraction.image}
+                    alt={attraction.title}
+                    className="object-cover rounded-lg"
+                    width={300}
+                    height={200}
+                  />
+                </div>
+              ))}
+            </div>
+            </div>
         </div>
 
         {showAttractions && (
